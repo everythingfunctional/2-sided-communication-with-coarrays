@@ -1,0 +1,63 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  Build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Get Time
+      id: time
+      uses: nanzm/get-time-action@v1.0
+      with:
+        format: 'YYYY-MM'
+
+    - uses: fortran-lang/setup-fpm@v5
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Install Dependencies
+      run: |
+        sudo apt install texlive-latex-recommended texlive-latex-extra texlive-science python3.11
+        wget https://github.com/jgm/pandoc/releases/download/3.1.8/pandoc-3.1.8-1-amd64.deb && sudo dpkg -i pandoc-3.1.8-1-amd64.deb && rm -f pandoc-3.1.8-1-amd64.deb
+        sudo python3.11 -m pip install codespell git+https://github.com/veneres/py-pandoc-include-code.git
+
+    - name: Render Paper
+      run: |
+        make
+
+    - name: Save Paper
+      uses: actions/upload-artifact@v2
+      with:
+        name: Paper
+        path: paper.pdf
+        if-no-files-found: error
+
+    - name: Check Spelling
+      run: make check-spelling
+
+    - name: Compile and Run Code
+      run: |
+        fpm build
+        if [ -d app ]; then fpm run; fi
+        if [ -d test ]; then fpm test; fi
+
+    - name: Prepare for Deployment
+      run: |
+        mkdir -p public
+        mv paper.pdf public
+        cd public && tree -i -H '.' -L 1 --noreport --charset utf-8 -I "*.html" -T "Download a Copy" > index.html
+
+    - name: Deploy to GitHub Pages
+      if: ${{ github.ref == 'refs/heads/main' }}
+      uses: JamesIves/github-pages-deploy-action@4.1.0
+      with:
+        branch: gh-pages
+        folder: public
