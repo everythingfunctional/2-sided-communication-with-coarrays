@@ -13,16 +13,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Get Time
-      id: time
-      uses: nanzm/get-time-action@v1.0
-      with:
-        format: 'YYYY-MM'
-
-    - uses: fortran-lang/setup-fpm@v5
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-
     - name: Install Dependencies
       run: |
         sudo apt install texlive-latex-recommended texlive-latex-extra texlive-science python3.11
@@ -42,12 +32,6 @@ jobs:
 
     - name: Check Spelling
       run: make check-spelling
-
-    - name: Compile and Run Code
-      run: |
-        fpm build
-        if [ -d app ]; then fpm run; fi
-        if [ -d test ]; then fpm test; fi
 
     - name: Prepare for Deployment
       run: |

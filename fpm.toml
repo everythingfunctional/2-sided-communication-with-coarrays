@@ -1,17 +1,9 @@
-name = "fortran-forum-article-template"
-version = "21.02.25"
+name = "two-sided-communication-with-coarrays"
+version = "23.11.08"
 license = "BSD"
-author = ["Bradley Richardson and Damian Rouson"]
-maintainer = "brad@sourceryinstitute.org"
-copyright = "2021 Sourcery Institute"
-
-[dependencies]
-sourcery = {git = "https://github.com/sourceryinstitute/sourcery", tag = "21.02.24"}
+author = ["Bradley Richardson"]
+maintainer = "brad.richardson@lbl.gov"
+copyright = "2023 Brad Richardson"
 
 [dev-dependencies]
-vegetables = {git = "https://gitlab.com/everythingfunctional/vegetables", tag = "v7.0.2"}
-
-[[test]]
-name="unit"
-source-dir="tests"
-main="main.f90"
+garden = { git = "https://gitlab.com/everythingfunctional/garden.git", tag = "v1.0.5" }

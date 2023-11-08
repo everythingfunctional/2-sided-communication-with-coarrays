@@ -183,7 +183,7 @@ You can then include the file by having an empty code block (i.e. two lines of t
 but on the first line, after the back-ticks include syntax like `{include=src/library_s.f90}`.
 We use the external pandoc filter [`py-pandoc-include-code`], which also has options for including portions of the named file.
 
-```{include=src/library_s.f90}
+```{include=src/communicator.f90}
 ```
 
 # Submitting an Article

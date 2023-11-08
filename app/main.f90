@@ -1,24 +1,29 @@
 program main
-  !! Demonstration of
-  !! 1. Runtime checking of assertions that represent pre- and post-conditions.
-  !! 2. Conditional output of variable diagnostic data inside a pure procedure.
-  use assertions_interface, only : assert
+  use communicator, only: communicator_t
+
   implicit none
 
-  print *,"reciprocal(2.) = ",reciprocal(2.)
+  type(communicator_t) :: comm
+  character(len=20) :: message[*]
+  integer :: me, ni
+  class(*), allocatable :: payload
 
-contains
-
-  pure function reciprocal(x) result(over_x)
-    real, intent(in) :: x
-    real over_x
-    real, parameter :: tolerance = 1.E-06
-
-    call assert(x/=0.,"main: x/=0.") ! precondition
-
-    over_x = 1./x
-
-    call assert(abs(x*over_x-1.) < tolerance,"main: x*reciprocal(x) ~ 1.", diagnostic_data = over_x) ! postcondition
-  end function
-
+  call comm%init()
+  me = this_image()
+  ni = num_images()
+  if (me == ni) then
+      write(message, "(A,I0)") "Hello from image ", me
+  else
+      call comm%receive_from(me+1, payload)
+      select type (payload)
+      type is (character(len=*))
+          message = payload
+      class default
+          message = "Didn't get a string message"
+      end select
+  end if
+  if (me > 1) call comm%send_to(me-1, message)
+  critical
+      print *, "Received message '" // trim(message) // "' on image ", me
+  end critical
 end program
