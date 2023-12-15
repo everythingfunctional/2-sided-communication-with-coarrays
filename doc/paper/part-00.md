@@ -31,5 +31,54 @@ The image with the largest index creates a message and sends it to its lower nei
 Each other image receives the message from its upper neighbor, i.e. image one higher index, and then sends it to its lower neighbor.
 Each image then prints the message.
 
-```{include=app/main.f90}
+```{include=app/simple.f90}
 ```
+
+Executing this program then results in output like the following.
+
+```
+ Received message 'Hello from image 4' on image  4
+ Received message 'Hello from image 4' on image  3
+ Received message 'Hello from image 4' on image  1
+ Received message 'Hello from image 4' on image  2
+```
+
+# Design
+
+The responsibility of the `communicator_t` derived type is to create and keep track of a set of teams for each pair of images.
+When a pair of images initiates communication, the communicator then selects the appropriate team for that pair,
+arranges for them to join that team, and then perform a `co_broadcast` operation.
+By using a derived type, the internal data structure for storing the team information can be encapsulated,
+and individual communicators can be created in the presence of other uses of teams.
+There is a caveat however, that a communicator can only be used by images whose current team is the team that was current when the communicator was initialized.
+Take the following, more complicated program as an example.
+
+```{include=app/complex.f90}
+```
+Executing this program then results in output like the following.
+
+```
+ Received message 'Hello initial team' on image  4  of the initial team
+ Received message 'Hello initial team' on image  3  of the initial team
+ Received message 'Hello initial team' on image  2  of the initial team
+ Received message 'Hello initial team' on image  1  of the initial team
+ Received message 'Red Team Rules!' on image  1  of team Red
+ Received message 'Red Team Rules!' on image  2  of team Red
+ Received message 'Go Team Blue!' on image  2  of team Blue
+ Received message 'Go Team Blue!' on image  1  of team Blue
+```
+
+The current implementation performs this by creating 2 teams for every pair of images in the current team.
+One where each image is identified as the sender, and one where it is the receiver.
+It stores these teams in a square matrix with dimensions being the number of images in the current team.
+This makes it simple to look up which team to join when initiating a communication.
+The sender looks up using its image index as one index, and the identified receiver as the other.
+The receiver looks up using its image index in the opposite position as the sender,
+and uses the identified sender as the other index.
+The `co_broadcast` operation can then always be performed specifying image 1 as the `source_image`.
+
+For the communication, a `payload_t` derived type, with a single `class(*)` component is used.
+The sender copies the data into the payload, and it is then broadcast to the receiver.
+The receiver then calls `move_alloc` to move the now allocated data from the payload and into the output argument.
+
+The implementation described above can be found at the GitLab repository [https://gitlab.com/everythingfunctional/communicator](https://gitlab.com/everythingfunctional/communicator).
