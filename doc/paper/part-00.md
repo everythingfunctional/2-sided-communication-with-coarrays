@@ -82,3 +82,11 @@ The sender copies the data into the payload, and it is then broadcast to the rec
 The receiver then calls `move_alloc` to move the now allocated data from the payload and into the output argument.
 
 The implementation described above can be found at the GitLab repository [https://gitlab.com/everythingfunctional/communicator](https://gitlab.com/everythingfunctional/communicator).
+
+# Conclusion
+
+Given the features of teams and a broadcast operation, it is possible to implement two sided communication.
+In Fortran this enables us to perform communication of polymorphic objects between images.
+However, this mechanism still does not allow communication of polymorphic objects between images in different teams,
+where it is possible to perform one-sided communication of non-polymorphic objects between images in different teams.
+It is expected that uses cases for such communication are likely rare at least.
